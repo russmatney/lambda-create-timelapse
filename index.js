@@ -1,7 +1,7 @@
 var Q = require('q');
 var execute = require('lambduh-execute');
 
-var pathToGifs = '~/Dropbox (Personal)/projects-clients/bosco/Timelapse Stuff/Sample GIFs/';
+var pathToGifs = '~/Desktop/timelapse_stuff/sample_gifs';
 
 exports.handler = function(event, context) {
   console.log('handler');

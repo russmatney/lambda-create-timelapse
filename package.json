@@ -18,5 +18,9 @@
     "gulp-util": "^3.0.4",
     "gulp-zip": "^3.0.0",
     "run-sequence": "^1.0.2"
+  },
+  "dependencies": {
+    "lambduh-execute": "^1.2.0",
+    "q": "^1.2.0"
   }
 }

@@ -1,34 +1,21 @@
 
-# make the work directory if it doesn't exist
-if [ ! -d "/tmp/work" ]; then
-	mkdir /tmp/work
-fi
-
-# empty anything old out of the work folder
-rm -r /tmp/work/*
-
-# counter
-X=1
 # process gifs
 for f in /tmp/downloaded-gifs/*.gif; do
 	# make the new name
 	echo "Processing" $f
-	NEWNAME=$(printf %04d.%s ${X%.*} ${f##*.})
-	NEWNAME=${NEWNAME:0:4}
-	let X="$X+1"
 
 	# rotate, scale
 	convert $f -background white \
 	  -gravity center \
 	  -scale 720 -extent 1280x720 \
-	  /tmp/prepped-gifs/$NEWNAME.gif
+	  /tmp/prepped-gifs/$f.gif
 
-	printf "file '%s'\n" /tmp/prepped-gifs/$NEWNAME.gif >> list.txt
+	printf "file '%s'\n" /tmp/prepped-gifs/$f.gif >> list.txt
 
 	# add watermark TODO: add to previous step
 	#if [ -f "/tmp/watermark.png" ]; then
 		#convert /tmp/watermark.png -scale 720 /tmp/watermark.png
-		#composite /tmp/watermark.png -geometry +280+0 /tmp/work/$NEWNAME.png /tmp/work/$NEWNAME.png
+		#composite /tmp/watermark.png -geometry +280+0 /tmp/work/$f.png /tmp/work/$f.png
 	#fi
 done
 

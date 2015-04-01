@@ -52,8 +52,17 @@ exports.handler = function(event, context) {
       bashParams: ['/tmp/endcard.jpg', result.numberOfGifs],
       logOutput: true
     })
+  }).then(function(result) {
+    return execute(result, {
+      bashScript: './bin/pngs-to-mp4.sh',
+      bashParams: [
+        '/tmp/work/%04d.png',
+        '/tmp/song.mp3',
+        '/tmp/timelapse.mp4'
+      ],
+      logOutput: true
+    })
   })
-
   //TODO: exec should reject the error, not the 'result/options'
   .then(function() {
     console.log("Finished");

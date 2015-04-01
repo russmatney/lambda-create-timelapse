@@ -2,8 +2,8 @@
 
 # convert endcard to PNG
 convert $1 PNG24:/tmp/endcard.png
-echo "\$2: " $2
-X=$(($2 * 4)) # assumes 4 pics per gif
+X=$(($2)) # assumes 4 pics per gif
+echo "X: " $X
 # copy the end card using the same X from above
 for i in {1..45}; do
   NEWNAME=$(printf %04d.%s ${X%.*} ${f##*.})

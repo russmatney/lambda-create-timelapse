@@ -6,6 +6,7 @@ var pathToGifs = '~/Desktop/timelapse_stuff/sample_gifs';
 var pathToTimelapse = './bin/timelapse.sh';
 
 exports.handler = function(event, context) {
+  var start = new Date();
   console.log('handler');
 
   var result = {};
@@ -49,16 +50,20 @@ exports.handler = function(event, context) {
   }).then(function(result) {
     return execute(result, {
       bashScript: './bin/append-endcard.sh',
-      bashParams: ['/tmp/endcard.jpg', result.numberOfGifs],
+      //Assumes at most 4 pngs per gif
+      bashParams: [
+        '/tmp/endcard.jpg', //src endcard
+        result.numberOfGifs * 4 //initial X for naming these cards
+      ],
       logOutput: true
     })
   }).then(function(result) {
     return execute(result, {
-      bashScript: './bin/pngs-to-mp4.sh',
+      bashScript: './bin/files-to-mp4.sh',
       bashParams: [
-        '/tmp/work/%04d.png',
-        '/tmp/song.mp3',
-        '/tmp/timelapse.mp4'
+        '/tmp/work/%04d.png', //input files
+        '/tmp/song.mp3', //input song
+        '/tmp/timelapse.mp4' //output filename
       ],
       logOutput: true
     })
@@ -66,6 +71,8 @@ exports.handler = function(event, context) {
   //TODO: exec should reject the error, not the 'result/options'
   .then(function() {
     console.log("Finished");
+    console.log('duration in ms: ');
+    console.log((new Date()).getTime() - start.getTime());
     context.done()
   }).fail(function(err) {
     if(err) {

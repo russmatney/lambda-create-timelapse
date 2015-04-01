@@ -2,13 +2,14 @@ var Q = require('q');
 var execute = require('lambduh-execute');
 
 var pathToGifs = '~/Desktop/timelapse_stuff/sample_gifs';
+var pathToTimelapse = './bin/timelapse.sh';
 
 exports.handler = function(event, context) {
   console.log('handler');
 
   //TODO: exec should reject the error, not the 'result/options'
   execute(null, {
-    shell: 'ls ' + pathToGifs,
+    bashScript:  pathToTimelapse,
     logOutput: true
   }).then(function() {
     console.log("Finished");

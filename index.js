@@ -17,6 +17,7 @@ exports.handler = function(event, context) {
 
     var promises = [];
     glob('/tmp/downloaded-gifs/**.gif', function(err, files) {
+      result.numberOfGifs = files.length;
       if (err) { def.reject(err) }
       files.forEach(function(file) {
         promises.push(execute(null, {
@@ -40,10 +41,12 @@ exports.handler = function(event, context) {
 
     return def.promise;
   }).then(function(result) {
-    //return execute(result, {
-      //bashScript:  pathToTimelapse,
-      //logOutput: true
-    //})
+    console.log(result);
+    return execute(result, {
+      bashScript: './bin/append-endcard.sh',
+      bashParams: ['/tmp/endcard.jpg', result.numberOfGifs],
+      logOutput: true
+    })
     return;
   })
 

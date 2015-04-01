@@ -4,6 +4,10 @@ var glob = require('glob');
 
 var pathToGifs = '~/Desktop/timelapse_stuff/sample_gifs';
 var pathToTimelapse = './bin/timelapse.sh';
+var pathToFilesToMp4 = './bin/files-to-mp4.sh';
+var pathToAppendEndcard = './bin/append-endcard.sh';
+var pathToRenamePngs = './bin/rename-pngs.sh';
+var pathToFileToPng = "./bin/file-to-png.sh";
 
 exports.handler = function(event, context) {
   var start = new Date();
@@ -14,52 +18,40 @@ exports.handler = function(event, context) {
     shell: 'rm /tmp/work/*',
     logOutput: true
   }).then(function(result) {
-    var def = Q.defer();
 
-    var promises = [];
-    glob('/tmp/downloaded-gifs/**.gif', function(err, files) {
-      result.numberOfGifs = files.length;
-      if (err) { def.reject(err) }
-      files.forEach(function(file) {
-        promises.push(execute(null, {
-          bashScript: "./bin/gif-to-png.sh",
-          bashParams: [file],
-          logOutput: true
-        }));
-      });
 
-      console.log('promises');
-      console.log(promises);
 
-      Q.all(promises)
-        .then(function(results) {
-          console.log('resolved!');
-
-          def.resolve(result);
-        });
-
-    });
-
-    return def.promise;
   }).then(function(result) {
+    console.log('renaming pngs');
+
     return execute(result, {
-      bashScript: './bin/rename-pngs.sh',
+      bashScript: pathToRenamePngs,
       bashParams: [],
       logOutput: true
     })
   }).then(function(result) {
-    return execute(result, {
-      bashScript: './bin/append-endcard.sh',
-      //Assumes at most 4 pngs per gif
-      bashParams: [
-        '/tmp/endcard.jpg', //src endcard
-        result.numberOfGifs * 4 //initial X for naming these cards
-      ],
-      logOutput: true
+    console.log('appending endcard');
+    var def = Q.defer();
+
+    glob('/tmp/work/**.png', function(err, files) {
+      var fileCount = files.length;
+
+      def.resolve(execute(result, {
+        bashScript: pathToAppendEndcard,
+        //Assumes at most 4 pngs per gif
+        bashParams: [
+          '/tmp/endcard.jpg', //src endcard
+          fileCount //initial X for naming these cards
+        ],
+        logOutput: true
+      }))
     })
+    return def.promise;
   }).then(function(result) {
+    console.log('creating mp4');
+
     return execute(result, {
-      bashScript: './bin/files-to-mp4.sh',
+      bashScript: pathToFilesToMp4,
       bashParams: [
         '/tmp/work/%04d.png', //input files
         '/tmp/song.mp3', //input song
@@ -68,6 +60,7 @@ exports.handler = function(event, context) {
       logOutput: true
     })
   })
+
   //TODO: exec should reject the error, not the 'result/options'
   .then(function() {
     console.log("Finished");
@@ -82,3 +75,34 @@ exports.handler = function(event, context) {
     }
   });
 }
+
+
+
+
+
+/*
+//async firing of a script per file in a glob
+  .then(function(result) {
+    var def = Q.defer();
+    var promises = [];
+    glob('/tmp/downloaded-jpgs-full/**.jpg', function(err, files) {
+      if (err) { def.reject(err) }
+      files.forEach(function(file) {
+        promises.push(execute(null, {
+          bashScript: pathToGifToPng,
+          bashParams: [file],
+          logOutput: true
+        }));
+      });
+
+      Q.all(promises)
+        .then(function(results) {
+          console.log('resolved!');
+          def.resolve(result);
+        });
+    });
+    return def.promise;
+  })
+
+*/
+

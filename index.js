@@ -41,13 +41,17 @@ exports.handler = function(event, context) {
 
     return def.promise;
   }).then(function(result) {
-    console.log(result);
+    return execute(result, {
+      bashScript: './bin/rename-pngs.sh',
+      bashParams: [],
+      logOutput: true
+    })
+  }).then(function(result) {
     return execute(result, {
       bashScript: './bin/append-endcard.sh',
       bashParams: ['/tmp/endcard.jpg', result.numberOfGifs],
       logOutput: true
     })
-    return;
   })
 
   //TODO: exec should reject the error, not the 'result/options'

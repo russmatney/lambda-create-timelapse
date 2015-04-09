@@ -11,6 +11,7 @@ describe('timelapse handler', function() {
   });
 
   it.only('should call .done() when things go well', function(done) {
+    this.timeout(30000);
     var event = {};
     var context = {
       done: function(err, message) {

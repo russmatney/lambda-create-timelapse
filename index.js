@@ -1,108 +1,164 @@
 var Q = require('q');
-var execute = require('lambduh-execute');
-var glob = require('glob');
+var AWS = require('aws-sdk');
 
-var pathToGifs = '~/Desktop/timelapse_stuff/sample_gifs';
-var pathToTimelapse = './bin/timelapse.sh';
-var pathToFilesToMp4 = './bin/files-to-mp4.sh';
-var pathToAppendEndcard = './bin/append-endcard.sh';
-var pathToRenamePngs = './bin/rename-pngs.sh';
-var pathToFileToPng = "./bin/file-to-png.sh";
+var validate = require('lambduh-validate');
 
-exports.handler = function(event, context) {
-  var start = new Date();
-  console.log('handler');
-
-  var result = {};
-  execute(result, {
-    shell: 'rm /tmp/work/*',
-    logOutput: true
-  }).then(function(result) {
+var Lambda = new AWS.Lambda();
 
 
+var orchFilesToPngs = function(event) {
+  var def = Q.defer();
+  console.log(event);
 
-  }).then(function(result) {
-    console.log('renaming pngs');
+  var fileUrls = Object.keys(event.sourceFiles).map(function(file) {
+    return event.sourceFiles[file].raw.filename;
+  });
 
-    return execute(result, {
-      bashScript: pathToRenamePngs,
-      bashParams: [],
-      logOutput: true
+  Lambda.invokeAsync({
+    FunctionName: "orchestrate-files-to-pngs",
+    InvokeArgs: JSON.stringify({
+      sourceUrls: fileUrls,
+      destBucket: event.workBucket,
+      destDir: event.pngsDir,
+      watermarkUrl: event.watermarkUrl
     })
-  }).then(function(result) {
-    console.log('appending endcard');
-    var def = Q.defer();
-
-    glob('/tmp/work/**.png', function(err, files) {
-      var fileCount = files.length;
-
-      def.resolve(execute(result, {
-        bashScript: pathToAppendEndcard,
-        //Assumes at most 4 pngs per gif
-        bashParams: [
-          '/tmp/endcard.jpg', //src endcard
-          fileCount //initial X for naming these cards
-        ],
-        logOutput: true
-      }))
-    })
-    return def.promise;
-  }).then(function(result) {
-    console.log('creating mp4');
-
-    return execute(result, {
-      bashScript: pathToFilesToMp4,
-      bashParams: [
-        '/tmp/work/%04d.png', //input files
-        '/tmp/song.mp3', //input song
-        '/tmp/timelapse.mp4' //output filename
-      ],
-      logOutput: true
-    })
-  })
-
-  //TODO: exec should reject the error, not the 'result/options'
-  .then(function() {
-    console.log("Finished");
-    console.log('duration in ms: ');
-    console.log((new Date()).getTime() - start.getTime());
-    context.done()
-  }).fail(function(err) {
-    if(err) {
-      context.done(err)
+  }, function(err, data) {
+    if (err) {
+      def.reject(err);
     } else {
-      context.done(new Error("Unspecifed fail."))
+      console.log('orchestrate-files-to-pngs invoked');
+      console.log(data);
+      def.resolve(event);
     }
   });
-}
+
+  return def.promise;
+};
+
+var orchPngsToMp4s = function(event) {
+  var def = Q.defer();
+  console.log(event);
+
+  Lambda.invokeAsync({
+    FunctionName: "orchestrate-pngs-to-mp4s",
+    InvokeArgs: JSON.stringify({
+      sourceBucket: event.workBucket,
+      sourceDir: event.pngsDir,
+      destBucket: event.workBucket,
+      destDir: event.mp4sDir,
+      endcardUrl: event.endcardUrl
+    })
+  }, function(err, data) {
+    if (err) {
+      def.reject(err);
+    } else {
+      console.log('orchestrate-pngs-to-mp4s invoked');
+      console.log(data);
+      def.resolve(event);
+    }
+  });
+
+  return def.promise;
+};
+
+var mp4sToTimelapse = function(event) {
+  var def = Q.defer();
+  console.log(event);
+
+  Lambda.invokeAsync({
+    FunctionName: "mp4s-to-timelapse",
+    InvokeArgs: JSON.stringify({
+      sourceBucket: event.workBucket,
+      sourceDir: event.mp4sDir,
+      musicUrl: event.musicUrl,
+      //save to another s3 bucket?
+      destBucket: event.finalTimelapseBucket,
+      destKey: event.timelapseDestKey,
+    })
+  }, function(err, data) {
+    if (err) {
+      def.reject(err);
+    } else {
+      console.log('mp4s-to-timelapse invoked');
+      console.log(data);
+      def.resolve(event);
+    }
+  });
+
+  return def.promise;
+};
+
+var uploadToVimeo = function(event) {
+  var def = Q.defer();
+  console.log(event);
+
+  Lambda.invokeAsync({
+    FunctionName: "upload-to-vimeo",
+    InvokeArgs: JSON.stringify({
+      sourceBucket: event.workBucket,
+      sourceKey: event.timelapseDestKey,
+      musicCredit: event.musicCredit,
+      videoTitle: event.videoTitle
+
+    })
+  }, function(err, data) {
+    if (err) {
+      def.reject(err);
+    } else {
+      console.log('mp4s-to-timelapse invoked');
+      console.log(data);
+      def.resolve(event);
+    }
+  });
+
+  return def.promise;
+};
 
 
 
 
+exports.handler = function(event, context) {
 
-/*
-//async firing of a script per file in a glob
-  .then(function(result) {
-    var def = Q.defer();
-    var promises = [];
-    glob('/tmp/downloaded-jpgs-full/**.jpg', function(err, files) {
-      if (err) { def.reject(err) }
-      files.forEach(function(file) {
-        promises.push(execute(null, {
-          bashScript: pathToGifToPng,
-          bashParams: [file],
-          logOutput: true
-        }));
-      });
-
-      Q.all(promises)
-        .then(function(results) {
-          console.log('resolved!');
-          def.resolve(result);
-        });
-    });
-    return def.promise;
+  validate(event, {
+    sourceFiles: true,
+    workBucket: true,
+    musicUrl: true,
+    musicCredit: true,
+    videoTitle: true,
+    watermarkUrl: true,
+    endcardUrl: true
   })
 
-*/
+  .then(function(event) {
+    event.pngsDir = event.videoTitle + "/timelapse/pngs";
+    event.mp4sDir = event.videoTitle + "/timelapse";
+    event.timelapseDestKey = event.videoTitle + "/timelapse/timelapse-final.mp4";
+    //TODO: final bucket?
+    event.finalTimelapseBucket = event.workBucket;
+  })
 
+  .then(function(event) {
+    //if first time, invoke orch-files-to-pngs and mark call made
+    //if after X ms, invoke orch-pngs-to-mp4s and mark call made
+    //if after X ms, invoke mp4s-to-timelapse and mark call made
+    //if after X ms, invoke upload-to-vimeo and mark call made
+
+    //unless invoking last process, wait 30 seconds
+    //increment call count and total time running
+    //invoke self with updated event data
+
+  })
+
+  .then(function(event) {
+    console.log('finished');
+    console.log(event);
+    context.done();
+  })
+
+  .fail(function(error) {
+    console.log('error');
+    console.log(error);
+    context.done(null, error);
+  })
+
+}

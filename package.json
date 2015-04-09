@@ -1,7 +1,7 @@
 {
-  "name": "bosco.time-lapse",
+  "name": "bosco.create-timelapse",
   "version": "1.0.0",
-  "description": "lambda function converting a .gif to a time-lapse with music",
+  "description": "lambda function converting a list of images to a time-lapse with music",
   "main": "index.js",
   "scripts": {
     "test": "gulp mocha"
@@ -20,9 +20,7 @@
     "run-sequence": "^1.0.2"
   },
   "dependencies": {
-    "glob": "^5.0.3",
-    "graceful-fs": "^3.0.6",
-    "lambduh-execute": "^1.2.0",
+    "aws-sdk": "^2.1.23",
     "q": "^1.2.0"
   }
 }

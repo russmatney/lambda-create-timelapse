@@ -123,7 +123,8 @@ exports.handler = function(event, context) {
     musicCredit: true,
     videoTitle: true,
     watermarkUrl: true,
-    endcardUrl: true
+    endcardUrl: true,
+    timelapseFinalKey: true
   })
 
   .then(function(event) {
@@ -132,9 +133,13 @@ exports.handler = function(event, context) {
     event.timelapseDestKey = event.videoTitle + "/timelapse/timelapse-final.mp4";
     //TODO: final bucket?
     event.finalTimelapseBucket = event.workBucket;
+
+    return event;
   })
 
   .then(function(event) {
+    console.log('determining stage in process with data:');
+    console.log(event);
 
     if (!event.msWaited && !event.orchFilesToPngsCalled) {
       //if first time, invoke orch-files-to-pngs and mark call made
@@ -174,6 +179,8 @@ exports.handler = function(event, context) {
     var def = Q.defer();
 
     if (event.uploadToVimeo) {
+      console.log('finished');
+      console.log(event);
       def.resolve(event);
     } else {
       //unless invoking last process, wait 30 seconds
@@ -190,6 +197,8 @@ exports.handler = function(event, context) {
           if (err) {
             def.reject(err);
           } else {
+            console.log('create-timelapse re-invoked with data:')
+            console.log(event);
             def.resolve(event);
           }
         });
@@ -200,8 +209,6 @@ exports.handler = function(event, context) {
   })
 
   .then(function(event) {
-    console.log('finished');
-    console.log(event);
     context.done();
   })
 

@@ -187,7 +187,7 @@ exports.handler = function(event, context) {
       //increment call count and total time running
       //invoke self with updated event data
 
-      var timeout = 30000;
+      var timeout = 45001;
       setTimeout(function() {
         event.msWaited += timeout;
         Lambda.invokeAsync({

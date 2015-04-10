@@ -5,6 +5,7 @@ var Lambda = new AWS.Lambda();
 
 var orchFilesToPngs = function(event) {
   var def = Q.defer();
+  console.log('invoking orchFilesToPngs')
   console.log(event);
 
   var fileUrls = Object.keys(event.sourceFiles).map(function(file) {
@@ -16,7 +17,7 @@ var orchFilesToPngs = function(event) {
     InvokeArgs: JSON.stringify({
       sourceUrls: fileUrls,
       destBucket: event.workBucket,
-      destDir: event.pngsDir,
+      pngsDir: event.pngsDir,
       watermarkUrl: event.watermarkUrl
     })
   }, function(err, data) {
@@ -146,8 +147,7 @@ exports.handler = function(event, context) {
       event.msWaited = 0;
       console.log("first time: invoke orch-files-to-pngs")
       event.orchFilesToPngsCalled = true;
-      //return orchFilesToPngs(event);
-      return event;
+      return orchFilesToPngs(event);
 
     } else if (event.msWaited > 50000 && !event.orchPngsToMp4sCalled) {
       //if after X ms, invoke orch-pngs-to-mp4s and mark call made

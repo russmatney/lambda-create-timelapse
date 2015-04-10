@@ -91,6 +91,7 @@ var mp4sToTimelapse = function(event) {
 
 var uploadToVimeo = function(event) {
   var def = Q.defer();
+  console.log('invoking upload-to-vimeo');
   console.log(event);
 
   Lambda.invokeAsync({
@@ -126,7 +127,7 @@ exports.handler = function(event, context) {
     musicUrl: true,
     musicCredit: true,
     videoTitle: true,
-    endcardUrl: true
+    endcardUrl: true // don't require - hard-code fallback if it doesn't exist
   })
 
   .then(function(event) {
@@ -165,13 +166,12 @@ exports.handler = function(event, context) {
       event.mp4sToTimelapseCalled = true;
       return mp4sToTimelapse(event);
 
-      //1,800,000 ms = 30 min
-    } else if (event.msWaited > 1800000 && !event.uploadToVimeo) {
+      //1,200,000 ms = 20 min
+    } else if (event.msWaited > 1200000 && !event.uploadToVimeoCalled) {
       //if after X ms, invoke upload-to-vimeo and mark call made
-      console.log("after 1800000 ms: invoke upload-to-vimeo")
-      event.uploadToVimeo = true;
-      //return uploadToVimeo(event);
-      return event
+      console.log("after 1200000 ms: invoke upload-to-vimeo")
+      event.uploadToVimeoCalled = true;
+      return uploadToVimeo(event);
 
     } else {
       return event;
@@ -181,7 +181,7 @@ exports.handler = function(event, context) {
   .then(function(event) {
     var def = Q.defer();
 
-    if (event.uploadToVimeo) {
+    if (event.uploadToVimeoCalled) {
       console.log('finished');
       console.log(event);
       def.resolve(event);

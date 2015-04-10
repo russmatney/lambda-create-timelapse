@@ -135,31 +135,43 @@ exports.handler = function(event, context) {
   })
 
   .then(function(event) {
-    var def = Q.defer();
 
-    if (!event.msWaited && !event.orchFilesToPngs) {
-      event.msWaited = 0;
+    if (!event.msWaited && !event.orchFilesToPngsCalled) {
       //if first time, invoke orch-files-to-pngs and mark call made
+      event.msWaited = 0;
       console.log("first time: invoke orch-files-to-pngs")
-      event.orchFilesToPngs = true;
+      event.orchFilesToPngsCalled = true;
+      //return orchFilesToPngs(event);
+      return event;
 
-    } else if (event.msWaited > 300000 && !event.orchPngsToMp4sCalled) {
+    } else if (event.msWaited > 50000 && !event.orchPngsToMp4sCalled) {
       //if after X ms, invoke orch-pngs-to-mp4s and mark call made
-      console.log("after 300000 ms: invoke orch-pngs-to-mp4s")
+      console.log("after 50000 ms: invoke orch-pngs-to-mp4s")
       event.orchPngsToMp4sCalled = true;
+      //return orchPngsToMp4s(event);
+      return event;
 
-    } else if (event.msWaited > 600000 && !event.mp4sToTimelapse) {
+    } else if (event.msWaited > 100000 && !event.mp4sToTimelapseCalled) {
       //if after X ms, invoke mp4s-to-timelapse and mark call made
-      console.log("after 600000 ms: invoke mp4s-to-timelapse")
-      event.mp4sToTimelapse = true;
+      console.log("after 100000 ms: invoke mp4s-to-timelapse")
+      event.mp4sToTimelapseCalled = true;
+      //return mp4sToTimelapse(event);
+      return event
 
-    } else if (event.msWaited > 720000 && !event.uploadToVimeo) {
+    } else if (event.msWaited > 200000 && !event.uploadToVimeo) {
       //if after X ms, invoke upload-to-vimeo and mark call made
-      console.log("after 720000 ms: invoke upload-to-vimeo")
+      console.log("after 200000 ms: invoke upload-to-vimeo")
       event.uploadToVimeo = true;
+      //return uploadToVimeo(event);
+      return event
 
+    } else {
+      return event;
     }
+  })
 
+  .then(function(event) {
+    var def = Q.defer();
 
     if (event.uploadToVimeo) {
       def.resolve(event);

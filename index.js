@@ -63,6 +63,7 @@ var orchPngsToMp4s = function(event) {
 
 var mp4sToTimelapse = function(event) {
   var def = Q.defer();
+  console.log('invoking mp4sToTimelapse');
   console.log(event);
 
   Lambda.invokeAsync({
@@ -105,7 +106,7 @@ var uploadToVimeo = function(event) {
     if (err) {
       def.reject(err);
     } else {
-      console.log('mp4s-to-timelapse invoked');
+      console.log('upload-to-vimeo invoked');
       console.log(data);
       def.resolve(event);
     }
@@ -150,22 +151,24 @@ exports.handler = function(event, context) {
       return orchFilesToPngs(event);
 
       //probably want to wait for 3 rounds of this conversion - > 9 minutes or so
+      //600,000 ms = 10 min
     } else if (event.msWaited > 600000 && !event.orchPngsToMp4sCalled) {
       //if after X ms, invoke orch-pngs-to-mp4s and mark call made
       console.log("after 600000 ms: invoke orch-pngs-to-mp4s")
       event.orchPngsToMp4sCalled = true;
       return orchPngsToMp4s(event);
 
-    } else if (event.msWaited > 100000 && !event.mp4sToTimelapseCalled) {
+      //900,000 ms = 15 min
+    } else if (event.msWaited > 900000 && !event.mp4sToTimelapseCalled) {
       //if after X ms, invoke mp4s-to-timelapse and mark call made
-      console.log("after 100000 ms: invoke mp4s-to-timelapse")
+      console.log("after 900000 ms: invoke mp4s-to-timelapse")
       event.mp4sToTimelapseCalled = true;
-      //return mp4sToTimelapse(event);
-      return event
+      return mp4sToTimelapse(event);
 
-    } else if (event.msWaited > 200000 && !event.uploadToVimeo) {
+      //1,800,000 ms = 30 min
+    } else if (event.msWaited > 1800000 && !event.uploadToVimeo) {
       //if after X ms, invoke upload-to-vimeo and mark call made
-      console.log("after 200000 ms: invoke upload-to-vimeo")
+      console.log("after 1800000 ms: invoke upload-to-vimeo")
       event.uploadToVimeo = true;
       //return uploadToVimeo(event);
       return event

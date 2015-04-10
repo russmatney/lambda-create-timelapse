@@ -35,16 +35,18 @@ var orchFilesToPngs = function(event) {
 
 var orchPngsToMp4s = function(event) {
   var def = Q.defer();
+  console.log('invoking orchPngsToMp4s');
   console.log(event);
 
   Lambda.invokeAsync({
     FunctionName: "orchestrate-pngs-to-mp4s",
     InvokeArgs: JSON.stringify({
       sourceBucket: event.workBucket,
-      sourceDir: event.pngsDir,
+      pngsDir: event.pngsDir,
       destBucket: event.workBucket,
-      destDir: event.mp4sDir,
-      endcardUrl: event.endcardUrl
+      mp4sDir: event.mp4sDir,
+      endcardUrl: event.endcardUrl,
+      pngsPerVideo: event.pngsPerVideo || 50
     })
   }, function(err, data) {
     if (err) {
@@ -124,14 +126,13 @@ exports.handler = function(event, context) {
     musicCredit: true,
     videoTitle: true,
     watermarkUrl: true,
-    endcardUrl: true,
-    timelapseFinalKey: true
+    endcardUrl: true
   })
 
   .then(function(event) {
-    event.pngsDir = event.videoTitle + "/timelapse/pngs";
-    event.mp4sDir = event.videoTitle + "/timelapse";
-    event.timelapseDestKey = event.videoTitle + "/timelapse/timelapse-final.mp4";
+    event.pngsDir = "events/" + event.videoTitle + "/timelapse/pngs";
+    event.mp4sDir = "events/" + event.videoTitle + "/timelapse";
+    event.timelapseDestKey = "events/" + event.videoTitle + "/timelapse/timelapse-final.mp4";
     //TODO: final bucket?
     event.finalTimelapseBucket = event.workBucket;
 
@@ -149,12 +150,12 @@ exports.handler = function(event, context) {
       event.orchFilesToPngsCalled = true;
       return orchFilesToPngs(event);
 
-    } else if (event.msWaited > 50000 && !event.orchPngsToMp4sCalled) {
+      //probably want to wait for 3 rounds of this conversion - > 9 minutes or so
+    } else if (event.msWaited > 600000 && !event.orchPngsToMp4sCalled) {
       //if after X ms, invoke orch-pngs-to-mp4s and mark call made
-      console.log("after 50000 ms: invoke orch-pngs-to-mp4s")
+      console.log("after 600000 ms: invoke orch-pngs-to-mp4s")
       event.orchPngsToMp4sCalled = true;
-      //return orchPngsToMp4s(event);
-      return event;
+      return orchPngsToMp4s(event);
 
     } else if (event.msWaited > 100000 && !event.mp4sToTimelapseCalled) {
       //if after X ms, invoke mp4s-to-timelapse and mark call made

@@ -125,7 +125,6 @@ exports.handler = function(event, context) {
     musicUrl: true,
     musicCredit: true,
     videoTitle: true,
-    watermarkUrl: true,
     endcardUrl: true
   })
 

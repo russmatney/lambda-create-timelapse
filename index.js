@@ -220,7 +220,6 @@ exports.handler = function(event, context) {
     console.log(event);
 
     if (!event.msWaited && !event.orchFilesToPngsCalled) {
-      //if first time, invoke orch-files-to-pngs and mark call made
       event.msWaited = 0;
       console.log("first time: invoke orch-files-to-pngs")
       event.orchFilesToPngsCalled = true;
@@ -229,21 +228,18 @@ exports.handler = function(event, context) {
       //probably want to wait for 3 rounds of this conversion - > 9 minutes or so
       //600,000 ms = 10 min
     } else if (event.msWaited > 600000 && !event.orchPngsToMp4sCalled) {
-      //if after X ms, invoke orch-pngs-to-mp4s and mark call made
       console.log("after 600000 ms: invoke orch-pngs-to-mp4s")
       event.orchPngsToMp4sCalled = true;
       return orchPngsToMp4s(event);
 
       //900,000 ms = 15 min
     } else if (event.msWaited > 900000 && !event.mp4sToTimelapseCalled) {
-      //if after X ms, invoke mp4s-to-timelapse and mark call made
       console.log("after 900000 ms: invoke mp4s-to-timelapse")
       event.mp4sToTimelapseCalled = true;
       return mp4sToTimelapse(event);
 
       //1,200,000 ms = 20 min
     } else if (event.msWaited > 1200000 && !event.uploadToVimeoCalled) {
-      //if after X ms, invoke upload-to-vimeo and mark call made
       console.log("after 1200000 ms: invoke upload-to-vimeo")
       event.uploadToVimeoCalled = true;
       return uploadToVimeo(event);
@@ -261,9 +257,6 @@ exports.handler = function(event, context) {
       console.log(event);
       def.resolve(event);
     } else {
-      //unless invoking last process, wait 30 seconds
-      //increment call count and total time running
-      //invoke self with updated event data
 
       var timeout = 45001;
       setTimeout(function() {

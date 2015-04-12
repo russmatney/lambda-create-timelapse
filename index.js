@@ -2,10 +2,11 @@ var Q = require('q');
 var AWS = require('aws-sdk');
 var validate = require('lambduh-validate');
 var Lambda = new AWS.Lambda();
+var S3 = new AWS.S3();
 
 var orchFilesToPngs = function(event) {
   var def = Q.defer();
-  console.log('invoking orchFilesToPngs')
+  console.log('orchestrating files-to-pngs')
   console.log(event);
 
   var fileUrls = Object.keys(event.sourceFiles).map(function(file) {
@@ -46,28 +47,91 @@ var orchFilesToPngs = function(event) {
 
 var orchPngsToMp4s = function(event) {
   var def = Q.defer();
-  console.log('invoking orchPngsToMp4s');
+  console.log('Orchestrating pngs-to-mp4s');
   console.log(event);
 
-  Lambda.invokeAsync({
-    FunctionName: "orchestrate-pngs-to-mp4s",
-    InvokeArgs: JSON.stringify({
-      sourceBucket: event.workBucket,
-      pngsDir: event.pngsDir,
-      destBucket: event.workBucket,
-      mp4sDir: event.mp4sDir,
-      endcardUrl: event.endcardUrl,
-      pngsPerVideo: event.pngsPerVideo || 50
-    })
+  //list s3 objects in bucket
+  S3.listObjects({
+    Bucket: event.workBucket,
+    Prefix: event.pngsDir
   }, function(err, data) {
-    if (err) {
-      def.reject(err);
-    } else {
-      console.log('orchestrate-pngs-to-mp4s invoked');
-      console.log(data);
-      def.resolve(event);
+    if (err) def.reject(err);
+    else {
+      var keys = data.Contents.map(function(object) {
+        //only .pngs
+        if (/\.png/.test(object.Key)) {
+          return object.Key;
+        }
+      });
+
+      //break into chunks of fixed size
+      var keyGroups = [];
+      console.log(keys.length + " pngs split into");
+      while(keys.length % event.pngsPerVideo > 0) {
+        keyGroups.push(keys.splice(0, event.pngsPerVideo || 50))
+      }
+      console.log(keyGroups.length + " groups");
+
+      var promises = [];
+      var groupNum = 0;
+
+      //invoke lambda func per group of keys
+      keyGroups.forEach(function(keys) {
+        promises.push(function() {
+          var defer = Q.defer();
+          Lambda.invokeAsync({
+            FunctionName: "pngs-to-mp4",
+            InvokeArgs: JSON.stringify({
+              srcBucket: event.workBucket,
+              srcKeys: keys,
+              dstBucket: event.workBucket,
+              //TODO: pad groupNum to preserve video order
+              dstKey: event.mp4sDir + "/video-" + groupNum++ + ".mp4"
+            })
+          }, function(err, data) {
+            if (err) {
+              defer.reject(err);
+            } else {
+              defer.resolve(data);
+            }
+          })
+          return defer.promise;
+        }())
+      })
+
+      //invoke lambda func for endcard
+      promises.push(function() {
+        var defer = Q.defer();
+        Lambda.invokeAsync({
+          FunctionName: "pngs-to-mp4",
+          InvokeArgs: JSON.stringify({
+            srcBucket: "none",
+            srcKeys: "none",
+            srcUrl: event.endcardUrl,
+            dstBucket: event.workBucket,
+            dstKey: event.mp4sDir + "/video-endcard.mp4"
+          })
+        }, function(err, data) {
+          if (err) {
+            defer.reject(err);
+          } else {
+            defer.resolve(data);
+          }
+        })
+        return defer.promise;
+      }())
+
+      Q.all(promises)
+        .then(function(invocationCbs) {
+          console.log(invocationCbs.length + ' lambda funcs invoked');
+          def.resolve(event);
+        })
+        .fail(function(err) {
+          def.reject(err);
+        })
+
     }
-  });
+  })
 
   return def.promise;
 };

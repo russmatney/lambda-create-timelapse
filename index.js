@@ -12,23 +12,34 @@ var orchFilesToPngs = function(event) {
     return event.sourceFiles[file].raw.filename;
   });
 
-  Lambda.invokeAsync({
-    FunctionName: "orchestrate-files-to-pngs",
-    InvokeArgs: JSON.stringify({
-      sourceUrls: fileUrls,
-      destBucket: event.workBucket,
-      pngsDir: event.pngsDir,
-      watermarkUrl: event.watermarkUrl
-    })
-  }, function(err, data) {
-    if (err) {
-      def.reject(err);
-    } else {
-      console.log('orchestrate-files-to-pngs invoked');
-      console.log(data);
-      def.resolve(event);
-    }
+  var promises = [];
+  fileUrls.forEach(function(url) {
+    var defer = Q.defer();
+    Lambda.invokeAsync({
+      FunctionName: "file-to-png",
+      InvokeArgs: JSON.stringify({
+        srcUrl: url,
+        destBucket: event.workBucket,
+        pngsDir: event.pngsDir,
+        watermarkUrl: event.watermarkUrl
+      })
+    }, function(err, data) {
+      if (err) {
+        defer.reject(err);
+      } else {
+        defer.resolve(event);
+      }
+    });
   });
+
+  Q.all(promises)
+    .then(function(invocationCbs) {
+      console.log(invocationCbs.length + " lambda functions invoked!");
+      def.resolve(event);
+    })
+    .fail(function(err) {
+      def.reject(err);
+    })
 
   return def.promise;
 };

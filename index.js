@@ -67,7 +67,7 @@ var orchPngsToMp4s = function(event) {
       //break into chunks of fixed size
       var keyGroups = [];
       console.log(keys.length + " pngs split into");
-      while(keys.length % event.pngsPerVideo > 0) {
+      while(keys.length % (event.pngsPerVideo || 50) > 0) {
         keyGroups.push(keys.splice(0, event.pngsPerVideo || 50))
       }
       console.log(keyGroups.length + " groups");

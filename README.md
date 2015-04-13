@@ -20,19 +20,19 @@ Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.
 {
   "workBucket": "russbosco",
   "musicUrl": "https://s3.amazonaws.com/russbosco/events/timelapseparty/Channel+Live.mp3",
-  "musicCredit": "LoZ",
-  "videoTitle": "awesomeparty201",
+  "videoTitle": "Legendairy Milk Party",
+  "videoDescription": "Music credit to ray kwan",
   "watermarkUrl": "https://s3.amazonaws.com/thebosco/watermarks/watermark-90.png",
   "endcardUrl": "https://s3.amazonaws.com/russbosco/events/timelapseparty/endcard.jpg",
-  "timelapseFinalKey": "timelapse-final.mp4",
-  "sourceFiles": {
-    "77JZTR": {
-      "raw": {
-        "filename": "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
-        "created": "2013-02-08 08:04:14"
-      }
-    }
-  }
+  "sourceFiles": [ 
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+    "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif"
+  ]
 }
 ```
 
@@ -46,5 +46,5 @@ Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.
 
 ###optional params
 
-- `watermarkUrl`
-- `endcardUrl`
+- `watermarkUrl` - Watermark to be applied to all the images in the timelapse (except the endcard)
+- `endcardUrl` - Card to be displayed at the end of the video - currently displays for 45 frames

@@ -9,12 +9,8 @@ var orchFilesToPngs = function(event) {
   console.log('orchestrating files-to-pngs')
   console.log(event);
 
-  var fileUrls = Object.keys(event.sourceFiles).map(function(file) {
-    return event.sourceFiles[file].raw.filename;
-  });
-
   var promises = [];
-  fileUrls.forEach(function(url) {
+  event.sourceFiles.forEach(function(url) {
     promises.push(function() {
       var defer = Q.defer();
       Lambda.invokeAsync({

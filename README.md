@@ -11,10 +11,8 @@ Lambda function that creates a timelapse
 
 Lambda functions can be invoked in several ways, as documented by the AWS SDK.
 
-Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.Lambda.LambdaClient.html#_invokeAsync), [Node](), and [Ruby]()
+Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.Lambda.LambdaClient.html#_invokeAsync) and [Node](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/index.html).
 
-```
-```
 
 ```
 //sample event object

@@ -15,22 +15,25 @@ var orchFilesToPngs = function(event) {
 
   var promises = [];
   fileUrls.forEach(function(url) {
-    var defer = Q.defer();
-    Lambda.invokeAsync({
-      FunctionName: "file-to-png",
-      InvokeArgs: JSON.stringify({
-        srcUrl: url,
-        destBucket: event.workBucket,
-        pngsDir: event.pngsDir,
-        watermarkUrl: event.watermarkUrl
-      })
-    }, function(err, data) {
-      if (err) {
-        defer.reject(err);
-      } else {
-        defer.resolve(event);
-      }
-    });
+    promises.push(function() {
+      var defer = Q.defer();
+      Lambda.invokeAsync({
+        FunctionName: "file-to-png",
+        InvokeArgs: JSON.stringify({
+          srcUrl: url,
+          destBucket: event.workBucket,
+          pngsDir: event.pngsDir,
+          watermarkUrl: event.watermarkUrl
+        })
+      }, function(err, data) {
+        if (err) {
+          defer.reject(err);
+        } else {
+          defer.resolve(event);
+        }
+      });
+      return defer.promise;
+    }())
   });
 
   Q.all(promises)

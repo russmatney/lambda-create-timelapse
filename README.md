@@ -38,27 +38,13 @@ Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.
 
 ###required params
 
-- `workBucket` - the bucket this function uses for temp work (storing pngs and mp4s)
-- `musicUrl` - url for the mp3 to be included in the final video
-- `musicCredit`
-- `videoTitle`
-- `timelapseFinalKey`
-- `sourceFiles` - currently expected to be in the format:
-
-```
-{
-  "77JZTR": {
-    "raw": {
-      "filename": "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
-      "created": "2013-02-08 08:04:14"
-    }
-  }
-}
-```
+- `workBucket` - Bucket this function uses for temp work (storing pngs and mp4s)
+- `sourceFiles` - An array of URLs pointing to the timelapse's images
+- `musicUrl` - URL for the mp3 to be included in the final video
+- `videoTitle` - Title for the Vimeo video to be uploaded
+- `videoDescription` - Set literally to the `description` tag on the vimeo video
 
 ###optional params
 
-
 - `watermarkUrl`
 - `endcardUrl`
-

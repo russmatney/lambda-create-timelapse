@@ -173,7 +173,7 @@ var uploadToVimeo = function(event) {
     InvokeArgs: JSON.stringify({
       sourceBucket: event.workBucket,
       sourceKey: event.timelapseDestKey,
-      musicCredit: event.musicCredit,
+      videoDescription: event.videoDescription,
       videoTitle: event.videoTitle
 
     })
@@ -199,7 +199,7 @@ exports.handler = function(event, context) {
     sourceFiles: true,
     workBucket: true,
     musicUrl: true,
-    musicCredit: true,
+    videoDescription: true,
     videoTitle: true,
     endcardUrl: true // don't require - hard-code fallback if it doesn't exist
   })

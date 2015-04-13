@@ -13,9 +13,10 @@ Lambda functions can be invoked in several ways, as documented by the AWS SDK.
 
 Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.Lambda.LambdaClient.html#_invokeAsync) and [Node](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/index.html).
 
+##event object
 
 ```
-//sample event object
+//example event object
 {
   "workBucket": "russbosco",
   "musicUrl": "https://s3.amazonaws.com/russbosco/events/timelapseparty/Channel+Live.mp3",
@@ -35,4 +36,29 @@ Here are links to [PHP](http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.
 }
 ```
 
+###required params
+
+- `workBucket` - the bucket this function uses for temp work (storing pngs and mp4s)
+- `musicUrl` - url for the mp3 to be included in the final video
+- `musicCredit`
+- `videoTitle`
+- `timelapseFinalKey`
+- `sourceFiles` - currently expected to be in the format:
+
+```
+{
+  "77JZTR": {
+    "raw": {
+      "filename": "https://s3.amazonaws.com/thebosco/events/vfiles-nyfw/77JZTR.gif",
+      "created": "2013-02-08 08:04:14"
+    }
+  }
+}
+```
+
+###optional params
+
+
+- `watermarkUrl`
+- `endcardUrl`
 

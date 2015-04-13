@@ -208,8 +208,7 @@ exports.handler = function(event, context) {
     event.pngsDir = "events/" + event.videoTitle + "/timelapse/pngs";
     event.mp4sDir = "events/" + event.videoTitle + "/timelapse";
     event.timelapseDestKey = "events/" + event.videoTitle + "/timelapse/timelapse-final.mp4";
-    //TODO: final bucket?
-    event.finalTimelapseBucket = event.workBucket;
+    event.finalTimelapseBucket = event.finalTimelapseBucket || event.workBucket;
 
     return event;
   })

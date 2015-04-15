@@ -17,6 +17,7 @@
     "gulp-mocha": "^2.0.1",
     "gulp-util": "^3.0.4",
     "gulp-zip": "^3.0.2",
+    "lambduh-gulp": "^0.1.0",
     "run-sequence": "^1.0.2"
   },
   "dependencies": {
